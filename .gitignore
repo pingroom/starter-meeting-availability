@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.pingroom/
+.meetings/
+receipts/
+*.local.json
+.DS_Store

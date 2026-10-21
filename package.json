@@ -1,0 +1,19 @@
+{
+  "name": "pingroom-starter-meeting-availability",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Find common availability across two UTC meeting slots using private PingRoom questions.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/main.js send",
+    "check": "node src/main.js check",
+    "recover": "node src/main.js recover",
+    "connect": "node src/main.js connect",
+    "inspect": "node src/main.js inspect",
+    "demo": "node src/demo.js",
+    "test": "node --test"
+  },
+  "dependencies": { "@pingroom/sdk": "0.6.0" },
+  "license": "MIT"
+}
