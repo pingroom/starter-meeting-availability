@@ -9,7 +9,7 @@ function validateObservation(observation, entry, participant) {
     if (observation.resolvedAt !== null || observation.answer !== null) fail('invalid_state', 'Invalid pending observation.');
   } else {
     if (!validDate(observation.resolvedAt) || Date.parse(observation.resolvedAt) < Date.parse(entry.createdAt)
-      || (observation.state === 'expired' ? Date.parse(observation.resolvedAt) !== Date.parse(entry.expiresAt) : Date.parse(observation.resolvedAt) >= Date.parse(entry.expiresAt))) fail('invalid_state', 'Invalid terminal observation timestamp.');
+      || (observation.state === 'expired' ? Date.parse(observation.resolvedAt) < Date.parse(entry.expiresAt) : Date.parse(observation.resolvedAt) >= Date.parse(entry.expiresAt))) fail('invalid_state', 'Invalid terminal observation timestamp.');
     if (observation.state === 'answered') {
       const a = observation.answer;
       if (!exactKeys(a, 'value,responderId,answeredAt') || !['a', 'b', 'both', 'neither'].includes(a.value)

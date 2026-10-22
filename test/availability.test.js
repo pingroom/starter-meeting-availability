@@ -150,6 +150,59 @@ for (const status of ['expired', 'cancelled']) {
   });
 }
 
+test('delayed expiry persists and rereads terminal observations without new questions', async (t) => {
+  let closed = false;
+  let resolvedAt = '2026-10-21T05:15:30+00:00';
+  const f = await fixture(t, { choices: {}, onGet(q) {
+    return Response.json(closed ? { ...q, state: 'expired', resolved_at: resolvedAt } : q);
+  } });
+  await coordinateAvailability(f.input);
+  closed = true;
+  const input = { ...f.input, mode: 'check', now: () => Date.parse('2026-10-21T05:16:00Z') };
+  const result = await coordinateAvailability(input);
+  assert.equal(result.status, 'incomplete');
+  assert.equal(result.commonSlots, null);
+  assert.ok(result.participants.every((p) => p.status === 'expired'));
+  const saved = await readFile(f.path, 'utf8');
+  assert.ok(JSON.parse(saved).entries.every((e) => e.observation.resolvedAt === resolvedAt));
+  const count = f.calls.length;
+  assert.deepEqual(await coordinateAvailability(input), result);
+  assert.equal(f.calls.slice(count).filter((c) => c.path.startsWith('/api/agent/questions/')).length, 2);
+  assert.equal(posts(f).length, 2);
+  assert.equal(await readFile(f.path, 'utf8'), saved);
+  resolvedAt = '2026-10-21T05:15:31+00:00';
+  await assert.rejects(coordinateAvailability(input), { code: 'question_mismatch' });
+  assert.equal(await readFile(f.path, 'utf8'), saved);
+  assert.equal(posts(f).length, 2);
+});
+
+for (const [name, resolvedAt] of [
+  ['before its deadline', '2026-10-21T05:14:59+00:00'],
+  ['beyond the clock allowance', '2026-10-21T05:16:06+00:00'],
+]) {
+  test(`rejects expired resolution ${name} without new questions`, async (t) => {
+    let closed = false;
+    const f = await fixture(t, { choices: {}, onGet(q) {
+      return Response.json(closed ? { ...q, state: 'expired', resolved_at: resolvedAt } : q);
+    } });
+    await coordinateAvailability(f.input);
+    closed = true;
+    const input = { ...f.input, mode: 'check', now: () => Date.parse('2026-10-21T05:16:00Z') };
+    const saved = await readFile(f.path, 'utf8');
+    await assert.rejects(coordinateAvailability(input), { code: 'question_mismatch' });
+    assert.equal(await readFile(f.path, 'utf8'), saved);
+    assert.equal(posts(f).length, 2);
+    if (name === 'before its deadline') {
+      const state = JSON.parse(saved);
+      state.entries[0].observation = { state: 'expired', resolvedAt, answer: null };
+      await writeFile(f.path, JSON.stringify(state));
+      const count = f.calls.length;
+      await assert.rejects(coordinateAvailability(input), { code: 'invalid_state' });
+      assert.equal(f.calls.length, count);
+    }
+  });
+}
+
 test('past slots never remain current suggestions and late starts do not send questions', async (t) => {
   const f = await fixture(t);
   await coordinateAvailability(f.input);

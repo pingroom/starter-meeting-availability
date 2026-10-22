@@ -82,7 +82,7 @@ export function assertQuestion(q, request, { room, questionId, askerId, createdA
     if (q.answer !== null || q.resolved_at !== null || Date.parse(q.expires_at) <= now) mismatch();
   } else {
     if (!validDate(q.resolved_at) || Date.parse(q.resolved_at) < Date.parse(q.created_at) || Date.parse(q.resolved_at) > now + 5000) mismatch();
-    if (q.state === 'expired' && Date.parse(q.resolved_at) !== Date.parse(q.expires_at)) mismatch();
+    if (q.state === 'expired' && Date.parse(q.resolved_at) < Date.parse(q.expires_at)) mismatch();
     if (q.state === 'cancelled' && Date.parse(q.resolved_at) >= Date.parse(q.expires_at)) mismatch();
     if (q.state !== 'answered' && q.answer !== null) mismatch();
     if (q.state === 'answered') {
