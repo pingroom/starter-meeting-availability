@@ -51,7 +51,9 @@ Each command makes one pass and exits. Run `check` again as answers arrive. Send
 
 ## Configuration
 
-Pairing saves credentials privately in `.pingroom/credentials.json` and keeps its pairing record for recovery. Interrupted pairing reuses the saved link. An approved pairing is saved before room validation, so you can retry with `--room` if the default room is unsuitable. An existing credential file is never overwritten automatically. After confirming an expired link is unusable, remove only `.pingroom/pairing.json` before reconnecting.
+Pairing saves credentials privately in `.pingroom/credentials.json` and keeps its pairing record for recovery. Interrupted pairing reuses the saved link. An approved pairing is saved before room validation, so you can retry with `--room` if the default room is unsuitable. An existing credential file is never overwritten automatically.
+
+Before registration, setup saves a private creation intent. A lost registration or pairing response leaves that intent in place; rerunning setup sends no new request. If creation is uncertain or the link expires, inspect Connected Agents and resolve or revoke the old robot before deliberately archiving `.pingroom/pairing.json` for a new setup. Do not discard the record just to obtain another link.
 
 Alternatively, copy `.env.example` to `.env` and supply both `PINGROOM_TOKEN` and `PINGROOM_ROOM`. A complete pair overrides saved credentials; partial or blank values fail. Shell variables take precedence. `MEETING_FILE`, `STATE_DIR`, and `RECEIPT_DIR` override local paths. All relative paths, including `.env`, resolve from the project directory.
 
